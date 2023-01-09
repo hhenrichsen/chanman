@@ -14,7 +14,7 @@ Container.set(
     createLogger({
         name: "bot",
         stream: process.stdout,
-        level: "debug",
+        level: process.env.NODE_ENV == "production" ? "info" : "debug",
     }),
 );
 
