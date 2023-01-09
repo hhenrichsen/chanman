@@ -63,21 +63,28 @@ export class JoinCommand extends Command {
             (channel) => channel.parentId == category.id,
         );
         const result = [];
-        for (const channelMaybe of categoryChannels) {
-            const channel = await channelMaybe.fetch();
-            if (
-                !channel.isThread() &&
-                !channel.isDMBased() &&
-                channel.isTextBased() &&
-                !channel.isVoiceBased()
-            ) {
-                result.push({
-                    value: channel.name,
-                    name: channel.topic || channel.name.toUpperCase(),
-                });
-            }
-        }
+        const focusedOption = interaction.options.getFocused(true);
         try {
+            for (const channelMaybe of categoryChannels.filter((channel) =>
+                channel.name.startsWith(focusedOption.value),
+            )) {
+                const channel = await channelMaybe.fetch();
+                if (
+                    !channel.isThread() &&
+                    !channel.isDMBased() &&
+                    channel.isTextBased() &&
+                    !channel.isVoiceBased()
+                ) {
+                    result.push({
+                        value: channel.name,
+                        name: channel.topic || channel.name.toUpperCase(),
+                    });
+                    if (result.length == 25) {
+                        await interaction.respond(result);
+                        return;
+                    }
+                }
+            }
             await interaction.respond(result);
         } catch (error) {
             this.logger.error(error);
