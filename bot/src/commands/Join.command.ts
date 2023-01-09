@@ -2,13 +2,20 @@ import Logger from "bunyan";
 import {
     AutocompleteInteraction,
     CacheType,
+    CategoryChannel,
+    ChannelType,
     ChatInputCommandInteraction,
     DiscordAPIError,
+    NewsChannel,
     SlashCommandBuilder,
+    StageChannel,
+    TextChannel,
+    VoiceChannel,
 } from "discord.js";
 import { Service } from "typedi";
 import { GuildSettingsRepository } from "../repositories/GuildSettings.repository";
 import { getValidChannels, isGuildCategory } from "../util/Guild";
+import { TimedCache } from "../util/TimedCache";
 import { Command } from "./Command";
 
 @Service()
@@ -25,6 +32,10 @@ export class JoinCommand extends Command {
                 .setAutocomplete(true),
         )
         .toJSON();
+
+    private readonly channelCache = new TimedCache<string, TextChannel[]>(
+        60 * 60 * 1000,
+    );
 
     constructor(
         private readonly logger: Logger,
@@ -49,43 +60,56 @@ export class JoinCommand extends Command {
             return;
         }
 
-        const channels = await getValidChannels(guild);
-        const category = channels
-            .filter(isGuildCategory) // Probably not needed, but nice to check for
-            .find((category) => category.id == settings.categoryId);
+        const focusedOption = interaction.options.getFocused(true);
+        if (!this.channelCache.has(guild.id)) {
+            this.channelCache.set(guild.id, async () => {
+                const channels = await getValidChannels(guild);
+                const category = channels
+                    .filter(isGuildCategory) // Probably not needed, but nice to check for
+                    .find((category) => category.id == settings.categoryId);
 
-        if (!category) {
-            this.logger.debug("JoinCommand: No category found");
-            return;
+                if (!category) {
+                    this.logger.debug("JoinCommand: No category found");
+                    return;
+                }
+
+                return (
+                    await Promise.all(
+                        channels.map((channel) =>
+                            channel.partial
+                                ? channel.fetch()
+                                : new Promise<
+                                      | CategoryChannel
+                                      | NewsChannel
+                                      | StageChannel
+                                      | TextChannel
+                                      | VoiceChannel
+                                  >((resolve) => resolve(channel)),
+                        ),
+                    )
+                ).filter(
+                    (channel): channel is TextChannel =>
+                        channel.parentId == category.id &&
+                        channel.type == ChannelType.GuildText,
+                );
+            });
         }
 
-        const categoryChannels = channels.filter(
-            (channel) => channel.parentId == category.id,
-        );
-        const result = [];
-        const focusedOption = interaction.options.getFocused(true);
         try {
-            for (const channelMaybe of categoryChannels.filter((channel) =>
-                channel.name.startsWith(focusedOption.value),
-            )) {
-                const channel = await channelMaybe.fetch();
-                if (
-                    !channel.isThread() &&
-                    !channel.isDMBased() &&
-                    channel.isTextBased() &&
-                    !channel.isVoiceBased()
-                ) {
-                    result.push({
-                        value: channel.name,
-                        name: channel.topic || channel.name.toUpperCase(),
-                    });
-                    if (result.length == 25) {
-                        await interaction.respond(result);
-                        return;
-                    }
-                }
+            const cached = await this.channelCache.get(guild.id);
+            if (cached) {
+                await interaction.respond(
+                    cached
+                        .filter((channel) =>
+                            channel.name.startsWith(focusedOption.value),
+                        )
+                        .map((channel) => ({
+                            name: channel.topic || channel.name.toUpperCase(),
+                            value: channel.name,
+                        }))
+                        .slice(0, 25),
+                );
             }
-            await interaction.respond(result);
         } catch (error) {
             this.logger.error(error);
         }
@@ -136,7 +160,8 @@ export class JoinCommand extends Command {
             const maybeChannel = channels.find(
                 (channel) =>
                     channel.name == fixedName &&
-                    channel.parentId == category.id,
+                    channel.parentId == category.id &&
+                    channel.type == ChannelType.GuildText,
             );
             const channel =
                 maybeChannel && maybeChannel.partial
@@ -146,6 +171,13 @@ export class JoinCommand extends Command {
                           parent: category.id,
                           name,
                       }));
+            if (!maybeChannel && channel.type == ChannelType.GuildText) {
+                this.channelCache.invalidate(guild.id);
+                this.channelCache.setValue(guild.id, (channels) => [
+                    ...(channels ?? []),
+                    channel,
+                ]);
+            }
 
             await channel.permissionOverwrites.edit(interaction.user, {
                 ViewChannel: true,
