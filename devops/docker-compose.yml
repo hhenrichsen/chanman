@@ -1,0 +1,57 @@
+version: '2'
+services:
+  adminer:
+    image: 'adminer'
+    depends_on:
+      - db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    links:
+      - db:db
+    ports:
+      - 8080:8080
+
+  db:
+    image: 'mysql:8.0.30'
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ../data/prod/db:/var/lib/mysql
+      - ../initdb:/docker-entrypoint-initdb.d:ro
+
+  migrator:
+    build:
+      context: ../bot
+      dockerfile: prod.dockerfile
+    command: |
+      /bin/sh -c "
+      echo 'Started; waiting for DB'
+      while ! nc -z db 3306 
+        do sleep 1
+      done
+      npm run migrate"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql://root:password@db:3306/chanman
+      MIGRATE_DATABASE_URL: mysql://root:password@db:3306/chanman
+
+  bot:
+    build:
+      context: ../bot
+      dockerfile: prod.dockerfile
+    command: |
+      /bin/sh -c "
+      echo 'Started; waiting for DB'
+      while ! nc -z db 3306 
+        do sleep 1
+      done
+      npm run run"
+    depends_on:
+      - db
+      - migrator
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: mysql://root:password@db:3306/chanman
+      MIGRATE_DATABASE_URL: mysql://root:password@db:3307/chanman

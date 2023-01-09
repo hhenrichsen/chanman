@@ -1,0 +1,38 @@
+name: Checks
+on:
+    pull_request:
+        types: [opened, reopened, synchronize, edited]
+    push:
+        branches:
+            - '*'
+
+jobs:
+    UnitTests:
+        name: "Unit Tests"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: 16
+            - name: Run Tests
+              run: |
+                  npm ci
+                  npm test -- --ci --coverage=true --max-workers ${{ steps.cpu-cores.outputs.count }}
+            - name: Upload coverage to Codecov
+              uses: codecov/codecov-action@v3
+
+    Format:
+        name: "Check Format"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: 16
+            - name: Check Format
+              run: |
+                  npm ci
+                  npx eslint
+                  npx prettier --check src
+
