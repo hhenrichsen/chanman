@@ -17,6 +17,7 @@ jobs:
                   node-version: 16
             - name: Run Tests
               run: |
+                  cd bot
                   npm ci
                   npm test -- --ci --coverage=true --max-workers ${{ steps.cpu-cores.outputs.count }}
             - name: Upload coverage to Codecov
@@ -32,6 +33,7 @@ jobs:
                   node-version: 16
             - name: Check Format
               run: |
+                  cd bot
                   npm ci
                   npx eslint
                   npx prettier --check src
