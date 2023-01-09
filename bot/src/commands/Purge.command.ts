@@ -14,7 +14,10 @@ import { GuildSettingsRepository } from "../repositories/GuildSettings.repositor
 
 @Service()
 export class PurgeCommand extends Command {
-    constructor(private readonly logger: Logger, private readonly guildSettingsRepo: GuildSettingsRepository) {
+    constructor(
+        private readonly logger: Logger,
+        private readonly guildSettingsRepo: GuildSettingsRepository,
+    ) {
         super();
     }
 
@@ -39,63 +42,68 @@ export class PurgeCommand extends Command {
         if (!guild) {
             this.logger.debug("PurgeCommand: No guild found");
             return;
-        } 
+        }
         this.guildSettingsRepo.saveDefaultGuild(guild.id);
         this.logger.debug("PurgeCommand: Loading channels");
         const guildChannels = await getValidChannels(guild);
         const guildCategories = guildChannels.filter(isGuildCategory);
         this.logger.debug("PurgeCommand: Done loading channels");
         if (interaction.isChatInputCommand()) {
-            const categoryID = interaction.options.getString('category_id');
+            const categoryID = interaction.options.getString("category_id");
             if (!categoryID) {
                 interaction.reply({
                     ephemeral: true,
-                    content: 'Missing channel ID'
+                    content: "Missing channel ID",
                 });
                 return;
             }
 
-            const category = guildCategories.find((category) => category.id == categoryID);
+            const category = guildCategories.find(
+                (category) => category.id == categoryID,
+            );
             if (!category) {
                 interaction.reply({
                     ephemeral: true,
-                    content: 'Could not find a category with that ID.'
+                    content: "Could not find a category with that ID.",
                 });
                 return;
             }
 
-            const toDelete = guildChannels.filter((channel) => channel.parentId == categoryID);
+            const toDelete = guildChannels.filter(
+                (channel) => channel.parentId == categoryID,
+            );
             try {
                 await Promise.all(toDelete.map((channel) => channel.delete()));
                 await interaction.reply({
                     ephemeral: true,
-                    content: "Cleared!"
+                    content: "Cleared!",
                 });
-            }
-            catch (error) {
+            } catch (error) {
                 if (error instanceof DiscordAPIError) {
                     if (error.code == 50013) {
                         await interaction.reply({
                             ephemeral: true,
-                            content: "I don't have permission to delete those channels."
+                            content:
+                                "I don't have permission to delete those channels.",
                         });
                     }
-                }
-                else {
+                } else {
                     await interaction.reply({
                         ephemeral: true,
-                        content: "An internal error occurred."
+                        content: "An internal error occurred.",
                     });
                 }
             }
         }
     }
-        
-    public override async autocomplete(interaction: AutocompleteInteraction<CacheType>): Promise<void> {
+
+    public override async autocomplete(
+        interaction: AutocompleteInteraction<CacheType>,
+    ): Promise<void> {
         const guild = interaction.guild;
         if (!guild) {
             return;
-        } 
+        }
         const guildChannels = await getValidChannels(guild);
         const guildCategories = guildChannels.filter(isGuildCategory);
         if (interaction.isAutocomplete()) {

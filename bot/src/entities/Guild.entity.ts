@@ -17,22 +17,22 @@ export class GuildSettings {
 
     @PrimaryColumn("varchar", { length: 32 })
     id: string;
-    
+
     @Column("varchar", { length: 32, nullable: true })
     categoryId?: string;
-    
+
     @Column("varchar", { length: 32, nullable: true })
     logChannel?: string;
 
     @Column("varchar", { length: 32, nullable: true })
     flagChannel?: string;
-    
+
     @Column("int")
     pinThreshold = 2;
-    
+
     @Column("int")
     flagThreshold = 1;
-    
+
     @Column("int")
     deleteThreshold = 5;
 

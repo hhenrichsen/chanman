@@ -10,11 +10,13 @@ export class PinReactHandler implements EmojiReactHandler {
     public readonly emoji: string = "📌";
 
     public async handleAdd(messageReaction: MessageReaction): Promise<void> {
-        const messageAndSettings = await this.getMessageAndSettings(messageReaction);
+        const messageAndSettings = await this.getMessageAndSettings(
+            messageReaction,
+        );
         if (!messageAndSettings) {
             return;
         }
-        const {guildSettings, message} = messageAndSettings;
+        const { guildSettings, message } = messageAndSettings;
         if (!guildSettings.pinThreshold || message.pinned) {
             return;
         }
@@ -24,11 +26,13 @@ export class PinReactHandler implements EmojiReactHandler {
     }
 
     public async handleRemove(messageReaction: MessageReaction): Promise<void> {
-        const messageAndSettings = await this.getMessageAndSettings(messageReaction);
+        const messageAndSettings = await this.getMessageAndSettings(
+            messageReaction,
+        );
         if (!messageAndSettings) {
             return;
         }
-        const {guildSettings, message} = messageAndSettings;
+        const { guildSettings, message } = messageAndSettings;
         if (!guildSettings.pinThreshold) {
             return;
         }
@@ -37,7 +41,7 @@ export class PinReactHandler implements EmojiReactHandler {
                 await message.unpin();
             }
         }
-    };
+    }
 
     private async pinMessage(message: Message<boolean>) {
         const pinned = await message.channel.messages.fetchPinned();
@@ -68,6 +72,6 @@ export class PinReactHandler implements EmojiReactHandler {
         if (!guildSettings) {
             return undefined;
         }
-        return {guildSettings, message};
+        return { guildSettings, message };
     }
 }

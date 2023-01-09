@@ -1,5 +1,12 @@
 import Logger from "bunyan";
-import { Client, Events, GatewayIntentBits, Partials, REST, Routes } from "discord.js";
+import {
+    Client,
+    Events,
+    GatewayIntentBits,
+    Partials,
+    REST,
+    Routes,
+} from "discord.js";
 import { Service } from "typedi";
 import { CommandHandler } from "./command/CommandHandler";
 import { CommandRegistry } from "./command/CommandRegistry";
@@ -27,8 +34,12 @@ export class Bot {
         this.token = BOT_TOKEN;
 
         this.client = new Client({
-            intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions],
-            partials: [Partials.Message, Partials.Channel, Partials.Reaction]
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+                GatewayIntentBits.GuildMessageReactions,
+            ],
+            partials: [Partials.Message, Partials.Channel, Partials.Reaction],
         });
 
         this.rest = new REST({ version: "10" });
@@ -59,21 +70,29 @@ export class Bot {
     private registerListeners() {
         this.client.on("ready", () => {
             this.logger.info("Bot ready!");
-            this.logger.info("https://discord.com/oauth2/authorize?client_id=806249847773462619&scope=bot&permissions=17381204023");
+            this.logger.info(
+                "https://discord.com/oauth2/authorize?client_id=806249847773462619&scope=bot&permissions=17381204023",
+            );
         });
 
         this.client.on(Events.InteractionCreate, (interaction) => {
             this.commandHandler.handle(interaction);
         });
-        
-        this.client.on(Events.MessageReactionAdd, async (maybePartialReaction) => {
-            const reaction = await maybePartialReaction.fetch();
-            this.reactHandler.handleAdd(reaction);
-        });
 
-        this.client.on(Events.MessageReactionRemove, async (maybePartialReaction) => {
-            const reaction = await maybePartialReaction.fetch();
-            this.reactHandler.handleRemove(reaction);
-        });
+        this.client.on(
+            Events.MessageReactionAdd,
+            async (maybePartialReaction) => {
+                const reaction = await maybePartialReaction.fetch();
+                this.reactHandler.handleAdd(reaction);
+            },
+        );
+
+        this.client.on(
+            Events.MessageReactionRemove,
+            async (maybePartialReaction) => {
+                const reaction = await maybePartialReaction.fetch();
+                this.reactHandler.handleRemove(reaction);
+            },
+        );
     }
 }

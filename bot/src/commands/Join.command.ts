@@ -128,7 +128,8 @@ export class JoinCommand extends Command {
         try {
             const maybeChannel = channels.find(
                 (channel) =>
-                    channel.name == fixedName && channel.parentId == category.id,
+                    channel.name == fixedName &&
+                    channel.parentId == category.id,
             );
             const channel =
                 maybeChannel && maybeChannel.partial

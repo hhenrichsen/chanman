@@ -12,7 +12,9 @@ export class CommandHandler {
 
     public handle(interaction: Interaction<CacheType>) {
         if (interaction.isAutocomplete()) {
-            this.logger.debug(`Handling command autocomplete ${interaction.commandName} for ${interaction.member}`);
+            this.logger.debug(
+                `Handling command autocomplete ${interaction.commandName} for ${interaction.member}`,
+            );
             const command = this.commandRegistry.getCommand(
                 interaction.commandName,
             );
@@ -23,9 +25,10 @@ export class CommandHandler {
                     `Trying to execute nonexistent autocomplete command ${interaction.commandName} for ${interaction.member}`,
                 );
             }
-        }
-        else if (interaction.isChatInputCommand()) {
-            this.logger.debug(`Handling chat input command ${interaction.commandName} for ${interaction.member}`);
+        } else if (interaction.isChatInputCommand()) {
+            this.logger.debug(
+                `Handling chat input command ${interaction.commandName} for ${interaction.member}`,
+            );
             const command = this.commandRegistry.getCommand(
                 interaction.commandName,
             );
@@ -36,9 +39,10 @@ export class CommandHandler {
                     `Trying to execute nonexistent chat input command ${interaction.commandName} for ${interaction.member}`,
                 );
             }
-        }
-        else {
-            this.logger.warn(`Tried to handle unknown interaction ${interaction.type} for ${interaction.member}`);
+        } else {
+            this.logger.warn(
+                `Tried to handle unknown interaction ${interaction.type} for ${interaction.member}`,
+            );
         }
     }
 }

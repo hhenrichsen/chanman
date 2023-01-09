@@ -3,18 +3,18 @@ import {
     CacheType,
     ChatInputCommandInteraction,
     RESTPostAPIApplicationCommandsJSONBody,
-} from 'discord.js';
+} from "discord.js";
 
 export abstract class Command {
     public abstract readonly declaration: RESTPostAPIApplicationCommandsJSONBody;
 
     public abstract run(
-        interaction: ChatInputCommandInteraction<CacheType>
+        interaction: ChatInputCommandInteraction<CacheType>,
     ): Promise<void> | void;
 
     public autocomplete(
-        _interaction: AutocompleteInteraction<CacheType>
-    ) : Promise<void> | void {
+        _interaction: AutocompleteInteraction<CacheType>,
+    ): Promise<void> | void {
         return;
     }
 }

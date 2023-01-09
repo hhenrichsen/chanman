@@ -2,7 +2,7 @@ import { CategoryChannel, Channel, ChannelType, Guild } from "discord.js";
 import { filterTruthy } from "./Types";
 
 export async function getValidChannels(guild: Guild) {
-        return [...(await guild.channels.fetch()).values()].filter(filterTruthy);
+    return [...(await guild.channels.fetch()).values()].filter(filterTruthy);
 }
 
 export async function getCategories(guild: Guild) {
