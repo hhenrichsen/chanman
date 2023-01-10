@@ -5,7 +5,7 @@
     "test": "jest",
     "prebuild": "rimraf dist/*",
     "run": "node dist/Index.js | bunyan",
-    "dev": "npx nodemon --legacy-watch --watch src --exec \"npm run run\" -e ts --polling-interval 2500",
+    "dev": "npx nodemon --legacy-watch --watch src --exec \"ts-node src/Index.ts\" -e ts --polling-interval 2500",
     "typeorm": "typeorm-ts-node-commonjs",
     "generate": "typeorm-ts-node-commonjs migration:generate ./src/migrations/$npm_config_name -d ./datasource.js",
     "format": "eslint --fix src && prettier --write src",
