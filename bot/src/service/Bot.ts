@@ -71,7 +71,7 @@ export class Bot {
         this.client.on("ready", () => {
             this.logger.info("Bot ready!");
             this.logger.info(
-                "https://discord.com/oauth2/authorize?client_id=806249847773462619&scope=bot&permissions=17381204023",
+                `https://discord.com/oauth2/authorize?client_id=${BOT_CLIENT_ID}&scope=bot&permissions=17381204023`,
             );
         });
 
