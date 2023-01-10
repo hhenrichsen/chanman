@@ -5,6 +5,7 @@ import Logger from "bunyan";
 
 // Make sure we get entities into the injector.
 import "../entities/Guild.entity";
+import "../entities/ChannelAlias.entity"
 
 const { DATABASE_URL, NODE_ENV } = process.env;
 

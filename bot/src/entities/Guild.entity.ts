@@ -2,12 +2,14 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     PrimaryColumn,
     UpdateDateColumn,
     VersionColumn,
 } from "typeorm";
 import Container from "typedi";
 import { EntityToken } from "./Entity";
+import { ChannelAlias } from "./ChannelAlias.entity";
 
 @Entity()
 export class GuildSettings {
@@ -35,6 +37,9 @@ export class GuildSettings {
 
     @Column("int")
     deleteThreshold = 5;
+
+    @OneToMany(() => ChannelAlias, (alias) => alias.guild)
+    aliases: ChannelAlias[]
 
     @CreateDateColumn()
     createdAt: Date = new Date();
